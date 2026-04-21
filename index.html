@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#00A699">
+    <meta name="description" content="WVSU Connect - Offline-first learning resource hub for quality education">
+    <title>WVSU Connect</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        :root {
+            --primary: #00A699;
+            --secondary: #005f52;
+            --accent: #FFB81C;
+            --success: #28a745;
+            --warning: #ffc107;
+            --error: #dc3545;
+            --bg: #f5f5f5;
+            --white: #ffffff;
+            --dark: #333333;
+            --light: #666666;
+            --border: #e0e0e0;
+        }
+
+        body, html {
+            width: 100%;
+            min-height: 100%;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--dark);
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 430px;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            margin: 0 auto;
+            background: var(--bg);
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            flex-shrink: 0;
+            min-height: 55px;
+            position: relative;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 150px;
+            height: 4px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 0 0 4px 4px;
+        }
+
+        .logo {
+            font-weight: bold;
+            font-size: 18px;
+            letter-spacing: 0.5px;
+        }
+
+        .logo-badge {
+            background: var(--accent);
+            color: var(--dark);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            margin-left: 4px;
+        }
+
+        .status {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+        }
+
+        .status-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--success);
+            animation: pulse 2s infinite;
+        }
+
+        .status-dot.offline {
+            background: var(--warning);
+            animation: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 12px 12px 80px;
+            min-height: calc(100vh - 85px);
+        }
+
+        .content::-webkit-scrollbar {
+            width: 3px;
+        }
+
+        .content::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .content::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 2px;
+        }
+
+        .tab-pane {
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tab-pane.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .card {
+            background: var(--white);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .card:active {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+            transform: translateY(-1px);
+        }
+
+        .card-title {
+            font-weight: 600;
+            font-size: 14px;
+            margin-bottom: 4px;
+            color: var(--dark);
+        }
+
+        .card-text {
+            font-size: 12px;
+            color: var(--light);
+            line-height: 1.4;
+            margin-bottom: 8px;
+        }
+
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: var(--light);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            background: var(--bg);
+            color: var(--dark);
+        }
+
+        .badge.success {
+            background: rgba(40,167,69,0.1);
+            color: var(--success);
+        }
+
+        .badge.warning {
+            background: rgba(255,193,7,0.1);
+            color: #ff9800;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .grid-item {
+            background: var(--white);
+            border-radius: 10px;
+            padding: 12px;
+            text-align: center;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: all 0.2s;
+            border-top: 3px solid var(--primary);
+        }
+
+        .grid-item:active {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+        }
+
+        .grid-icon {
+            font-size: 32px;
+            margin-bottom: 6px;
+        }
+
+        .grid-label {
+            font-weight: 600;
+            font-size: 12px;
+            color: var(--dark);
+        }
+
+        .search-box {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-size: 13px;
+            background: var(--white);
+            color: var(--dark);
+        }
+
+        .search-btn {
+            background: var(--primary);
+            color: var(--white);
+            border: none;
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+        }
+
+        .progress-item {
+            background: var(--white);
+            border-radius: 10px;
+            padding: 12px;
+            margin-bottom: 12px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .progress-title {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--dark);
+        }
+
+        .progress-percent {
+            background: var(--accent);
+            color: var(--dark);
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 5px;
+            background: var(--border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--primary);
+            border-radius: 3px;
+            transition: width 0.3s;
+        }
+
+        .progress-text {
+            font-size: 11px;
+            color: var(--light);
+            margin-top: 4px;
+        }
+
+        .setting-item {
+            background: var(--white);
+            padding: 12px;
+            border-radius: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
+
+        .setting-label {
+            flex: 1;
+        }
+
+        .setting-name {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--dark);
+            margin-bottom: 2px;
+        }
+
+        .setting-desc {
+            font-size: 11px;
+            color: var(--light);
+        }
+
+        .toggle {
+            width: 44px;
+            height: 24px;
+            background: var(--border);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            position: relative;
+            transition: background 0.3s;
+            flex-shrink: 0;
+        }
+
+        .toggle.on {
+            background: var(--primary);
+        }
+
+        .toggle::after {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: var(--white);
+            border-radius: 50%;
+            top: 2px;
+            left: 2px;
+            transition: left 0.3s;
+        }
+
+        .toggle.on::after {
+            left: 22px;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 12px;
+            margin-top: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: var(--white);
+        }
+
+        .btn-primary:active {
+            background: var(--secondary);
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--dark);
+            border: 1px solid var(--border);
+        }
+
+        .offline-banner {
+            background: rgba(255,193,7,0.1);
+            border: 1px solid var(--warning);
+            color: #ff9800;
+            padding: 10px 12px;
+            border-radius: 8px;
+            font-size: 12px;
+            margin-bottom: 12px;
+            display: none;
+        }
+
+        .offline-banner.show {
+            display: block;
+        }
+
+        .footer-nav {
+            display: flex;
+            justify-content: space-around;
+            background: var(--white);
+            border-top: 1px solid var(--border);
+            padding: 8px 0;
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            max-width: 430px;
+            z-index: 10;
+        }
+
+        .footer-btn {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2px;
+            padding: 8px;
+            border: none;
+            background: none;
+            cursor: pointer;
+            color: var(--light);
+            font-size: 11px;
+            transition: color 0.2s;
+        }
+
+        .footer-btn.active {
+            color: var(--primary);
+        }
+
+        .footer-icon {
+            font-size: 18px;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 1000;
+            align-items: flex-end;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--white);
+            width: 100%;
+            border-radius: 16px 16px 0 0;
+            padding: 16px;
+            max-height: 80vh;
+            overflow-y: auto;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to { transform: translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .modal-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--light);
+        }
+
+        .welcome-card {
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: var(--white);
+            padding: 16px;
+            border-radius: 10px;
+            margin-bottom: 12px;
+        }
+
+        .welcome-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .welcome-text {
+            font-size: 12px;
+            opacity: 0.9;
+            line-height: 1.4;
+        }
+
+        .section-title {
+            font-size: 13px;
+            font-weight: 600;
+            margin: 12px 0 10px 0;
+            color: var(--dark);
+        }
+
+        .lesson-item {
+            background: var(--white);
+            padding: 12px;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+
+        .lesson-info {
+            flex: 1;
+        }
+
+        .lesson-name {
+            font-weight: 600;
+            font-size: 13px;
+            color: var(--dark);
+            margin-bottom: 2px;
+        }
+
+        .lesson-duration {
+            font-size: 11px;
+            color: var(--light);
+        }
+
+        .lesson-status {
+            font-size: 16px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                WVSU <span class="logo-badge">Connect</span>
+            </div>
+            <div class="status">
+                <div class="status-dot" id="statusDot"></div>
+                <span id="statusText">Online</span>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <div class="content">
+            <!-- HOME TAB -->
+            <div class="tab-pane active" id="home">
+                <div class="offline-banner" id="offlineBanner">
+                    📡 You're offline. Viewing cached content.
+                </div>
+
+                <div class="welcome-card">
+                    <div class="welcome-title">Welcome to WVSU Connect 🎓</div>
+                    <div class="welcome-text">Quality education for all, aligned with SDG 4</div>
+                </div>
+
+                <div class="section-title">Featured Learning Paths</div>
+                <div id="featuredCourses"></div>
+            </div>
+
+            <!-- SUBJECTS TAB -->
+            <div class="tab-pane" id="subjects">
+                <div class="search-box">
+                    <input type="text" class="search-input" id="searchInput" placeholder="Search subjects...">
+                    <button class="search-btn" onclick="searchSubjects()">🔍</button>
+                </div>
+
+                <div class="section-title">Available Subjects</div>
+                <div class="grid-2" id="subjectsGrid"></div>
+            </div>
+
+            <!-- PROGRESS TAB -->
+            <div class="tab-pane" id="progress">
+                <div class="section-title">Learning Progress</div>
+                <div id="progressList"></div>
+                <div style="background: var(--bg); padding: 16px; border-radius: 8px; text-align: center; margin-top: 12px;">
+                    <div style="font-size: 24px; font-weight: bold; color: var(--primary);" id="overallProgress">0%</div>
+                    <div style="font-size: 12px; color: var(--light); margin-top: 4px;">Overall Progress</div>
+                </div>
+            </div>
+
+            <!-- SETTINGS TAB -->
+            <div class="tab-pane" id="settings">
+                <div class="section-title">Settings</div>
+
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <div class="setting-name">Offline Mode</div>
+                        <div class="setting-desc">Download for offline access</div>
+                    </div>
+                    <button class="toggle on" id="offlineToggle" onclick="toggleSetting('offline')"></button>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <div class="setting-name">Notifications</div>
+                        <div class="setting-desc">Lesson reminders</div>
+                    </div>
+                    <button class="toggle on" id="notifyToggle" onclick="toggleSetting('notify')"></button>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <div class="setting-name">Dark Mode</div>
+                        <div class="setting-desc">Easier on eyes</div>
+                    </div>
+                    <button class="toggle" id="darkToggle" onclick="toggleSetting('dark')"></button>
+                </div>
+
+                <div class="setting-item">
+                    <div class="setting-label">
+                        <div class="setting-name">Auto-Sync</div>
+                        <div class="setting-desc">Background updates</div>
+                    </div>
+                    <button class="toggle on" id="syncToggle" onclick="toggleSetting('sync')"></button>
+                </div>
+
+                <button class="btn btn-secondary" onclick="clearCacheData()">Clear Cache</button>
+                <button class="btn btn-secondary" onclick="showAbout()">About WVSU Connect</button>
+            </div>
+        </div>
+
+        <!-- Footer Navigation -->
+        <footer class="footer-nav">
+            <button class="footer-btn active" onclick="switchTab('home'); updateFooter(0)">
+                <div class="footer-icon">🏠</div>
+                <div>Home</div>
+            </button>
+            <button class="footer-btn" onclick="switchTab('subjects'); updateFooter(1)">
+                <div class="footer-icon">📚</div>
+                <div>Subjects</div>
+            </button>
+            <button class="footer-btn" onclick="switchTab('progress'); updateFooter(2)">
+                <div class="footer-icon">📊</div>
+                <div>Progress</div>
+            </button>
+            <button class="footer-btn" onclick="switchTab('settings'); updateFooter(3)">
+                <div class="footer-icon">⚙️</div>
+                <div>Settings</div>
+            </button>
+        </footer>
+    </div>
+
+    <!-- Modal -->
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle"></div>
+                <button class="modal-close" onclick="closeModal()">×</button>
+            </div>
+            <div id="modalBody"></div>
+        </div>
+    </div>
+
+    <script>
+        // App Data
+        const appData = {
+            subjects: [
+                { id: 1, name: 'Mathematics', emoji: '📐', lessons: 45, completed: 28, bookmarked: false },
+                { id: 2, name: 'Science', emoji: '🔬', lessons: 52, completed: 18, bookmarked: true },
+                { id: 3, name: 'English', emoji: '📚', lessons: 38, completed: 35, bookmarked: false },
+                { id: 4, name: 'Geography', emoji: '🌍', lessons: 30, completed: 12, bookmarked: false },
+                { id: 5, name: 'History', emoji: '📜', lessons: 35, completed: 25, bookmarked: true },
+                { id: 6, name: 'ICT', emoji: '💻', lessons: 40, completed: 33, bookmarked: false },
+                { id: 7, name: 'Arts', emoji: '🎨', lessons: 25, completed: 15, bookmarked: false },
+                { id: 8, name: 'Biology', emoji: '🧬', lessons: 42, completed: 20, bookmarked: false },
+                { id: 9, name: 'Chemistry', emoji: '⚗️', lessons: 38, completed: 8, bookmarked: false },
+                { id: 10, name: 'PE', emoji: '⚽', lessons: 30, completed: 25, bookmarked: false },
+                { id: 11, name: 'Music', emoji: '🎵', lessons: 20, completed: 14, bookmarked: false },
+                { id: 12, name: 'Filipino', emoji: '🗣️', lessons: 35, completed: 30, bookmarked: false }
+            ],
+            courses: [
+                { id: 1, title: 'Math Fundamentals', desc: 'Basic algebra and geometry', progress: 65, lessons: 20, bookmarked: true },
+                { id: 2, title: 'Science Basics', desc: 'Physics and chemistry fundamentals', progress: 42, lessons: 19, bookmarked: false },
+                { id: 3, title: 'English Communication', desc: 'Writing and speaking skills', progress: 88, lessons: 25, bookmarked: true },
+                { id: 4, title: 'History & Culture', desc: 'Learn about world history', progress: 31, lessons: 20, bookmarked: false }
+            ],
+            notifications: [
+                { id: 1, title: 'New Lesson Available', message: 'Math Fundamentals - Lesson 14 is now available', time: '2h ago', read: false },
+                { id: 2, title: 'Progress Milestone', message: 'Congratulations! You completed 50% of Science Basics', time: '1d ago', read: false },
+                { id: 3, title: 'Weekly Reminder', message: 'Don\'t forget to study today!', time: '3d ago', read: true }
+            ],
+            settings: {
+                offline: true,
+                notify: true,
+                dark: false,
+                sync: true
+            }
+        };
+
+        // Initialize App
+        function init() {
+            loadStoredData();
+            renderFeaturedCourses();
+            renderSubjects();
+            renderProgress();
+            updateOnlineStatus();
+            
+            window.addEventListener('online', () => updateOnlineStatus());
+            window.addEventListener('offline', () => updateOnlineStatus());
+        }
+
+        // Storage Functions
+        function loadStoredData() {
+            const stored = localStorage.getItem('wvsuConnect');
+            if (stored) {
+                const data = JSON.parse(stored);
+                Object.assign(appData, data);
+            }
+        }
+
+        function saveStoredData() {
+            localStorage.setItem('wvsuConnect', JSON.stringify(appData));
+        }
+
+        // Online/Offline Status
+        function updateOnlineStatus() {
+            const isOnline = navigator.onLine;
+            const dot = document.getElementById('statusDot');
+            const text = document.getElementById('statusText');
+            const banner = document.getElementById('offlineBanner');
+
+            if (isOnline) {
+                dot.classList.remove('offline');
+                text.textContent = 'Online';
+                banner.classList.remove('show');
+            } else {
+                dot.classList.add('offline');
+                text.textContent = 'Offline';
+                banner.classList.add('show');
+            }
+        }
+
+        // Tab Switching
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-pane').forEach(tab => tab.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+
+            document.querySelectorAll('.nav-tab').forEach(tab => tab.classList.remove('active'));
+            event.target.classList.add('active');
+        }
+
+        function updateFooter(index) {
+            document.querySelectorAll('.footer-btn').forEach((btn, i) => {
+                if (i === index) btn.classList.add('active');
+                else btn.classList.remove('active');
+            });
+        }
+
+        // Render Functions
+        function renderFeaturedCourses() {
+            const container = document.getElementById('featuredCourses');
+            container.innerHTML = appData.courses.map(course => `
+                <div class="card" onclick="showCourseDetails(${course.id})">
+                    <div class="card-title">${course.title}</div>
+                    <div class="card-text">${course.desc}</div>
+                    <div style="margin: 8px 0;">
+                        <div class="progress-bar">
+                            <div class="progress-fill" style="width: ${course.progress}%"></div>
+                        </div>
+                    </div>
+                    <div class="card-meta">
+                        <span>${course.progress}% complete</span>
+                        <span class="badge success">${course.lessons} lessons</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderSubjects() {
+            const grid = document.getElementById('subjectsGrid');
+            grid.innerHTML = appData.subjects.map(subject => {
+                const percent = Math.round((subject.completed / subject.lessons) * 100);
+                return `
+                    <div class="grid-item" onclick="showSubjectDetails(${subject.id})">
+                        <div class="grid-icon">${subject.emoji}</div>
+                        <div class="grid-label">${subject.name}</div>
+                        <div style="font-size: 11px; color: var(--light); margin-top: 4px;">${percent}% done</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderProgress() {
+            const container = document.getElementById('progressList');
+            container.innerHTML = appData.courses.map(course => `
+                <div class="progress-item">
+                    <div class="progress-header">
+                        <div class="progress-title">${course.title}</div>
+                        <div class="progress-percent">${course.progress}%</div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${course.progress}%"></div>
+                    </div>
+                    <div class="progress-text">${course.lessons} lessons • Keep learning!</div>
+                </div>
+            `).join('');
+
+            const totalProgress = Math.round(appData.courses.reduce((a, c) => a + c.progress, 0) / appData.courses.length);
+            document.getElementById('overallProgress').textContent = totalProgress + '%';
+        }
+
+        // Details & Modal
+        function showCourseDetails(courseId) {
+            const course = appData.courses.find(c => c.id === courseId);
+            const modal = document.getElementById('modal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+
+            const lessons = Array.from({length: course.lessons}, (_, i) => ({
+                id: i + 1,
+                name: `Lesson ${i + 1}: ${course.title}`,
+                duration: `${15 + Math.random() * 30 | 0} min`,
+                completed: i < (course.progress / 100 * course.lessons)
+            }));
+
+            modalTitle.textContent = course.title;
+            modalBody.innerHTML = `
+                <div class="section-title">Lessons</div>
+                ${lessons.map(lesson => `
+                    <div class="lesson-item" onclick="completeLesson(${lesson.id})">
+                        <div class="lesson-info">
+                            <div class="lesson-name">${lesson.name}</div>
+                            <div class="lesson-duration">${lesson.duration}</div>
+                        </div>
+                        <div class="lesson-status">${lesson.completed ? '✓' : '○'}</div>
+                    </div>
+                `).join('')}
+                <button class="btn btn-primary" onclick="downloadCourse(${courseId})">Download for Offline</button>
+            `;
+
+            modal.classList.add('show');
+        }
+
+        function showSubjectDetails(subjectId) {
+            const subject = appData.subjects.find(s => s.id === subjectId);
+            const modal = document.getElementById('modal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+
+            const percent = Math.round((subject.completed / subject.lessons) * 100);
+
+            modalTitle.textContent = subject.name;
+            modalBody.innerHTML = `
+                <div style="text-align: center; margin-bottom: 16px;">
+                    <div style="font-size: 40px; margin-bottom: 8px;">${subject.emoji}</div>
+                    <div style="font-size: 24px; font-weight: bold; color: var(--primary);">${percent}%</div>
+                    <div style="font-size: 12px; color: var(--light);">${subject.completed} of ${subject.lessons} lessons</div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${percent}%"></div>
+                </div>
+                <button class="btn btn-primary" onclick="startSubject(${subjectId})">Continue Learning</button>
+                <button class="btn btn-secondary" onclick="downloadSubject(${subjectId})">Download Content</button>
+            `;
+
+            modal.classList.add('show');
+        }
+
+        function closeModal() {
+            document.getElementById('modal').classList.remove('show');
+        }
+
+        // Actions
+        function completeLesson(lessonId) {
+            alert('Lesson ' + lessonId + ' marked as complete! ✓');
+        }
+
+        function startSubject(subjectId) {
+            alert('Starting subject ' + subjectId + '...');
+            closeModal();
+        }
+
+        function downloadCourse(courseId) {
+            alert('Downloading course ' + courseId + ' for offline use...');
+        }
+
+        function downloadSubject(subjectId) {
+            alert('Downloading subject ' + subjectId + ' for offline use...');
+        }
+
+        function searchSubjects() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+            const grid = document.getElementById('subjectsGrid');
+            const filtered = appData.subjects.filter(s => s.name.toLowerCase().includes(query));
+            
+            grid.innerHTML = filtered.map(subject => {
+                const percent = Math.round((subject.completed / subject.lessons) * 100);
+                return `
+                    <div class="grid-item" onclick="showSubjectDetails(${subject.id})">
+                        <div class="grid-icon">${subject.emoji}</div>
+                        <div class="grid-label">${subject.name}</div>
+                        <div style="font-size: 11px; color: var(--light); margin-top: 4px;">${percent}% done</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Settings
+        function toggleSetting(setting) {
+            const toggle = document.getElementById(setting + 'Toggle');
+            toggle.classList.toggle('on');
+        }
+
+        function clearCacheData() {
+            if (confirm('Clear all cached data?')) {
+                localStorage.clear();
+                alert('Cache cleared! 🗑️');
+                location.reload();
+            }
+        }
+
+        function showAbout() {
+            const modal = document.getElementById('modal');
+            const modalTitle = document.getElementById('modalTitle');
+            const modalBody = document.getElementById('modalBody');
+
+            modalTitle.textContent = 'About WVSU Connect';
+            modalBody.innerHTML = `
+                <div style="font-size: 12px; line-height: 1.6; color: var(--dark);">
+                    <p style="margin-bottom: 12px;"><strong>WVSU Connect v2.0</strong></p>
+                    <p style="margin-bottom: 12px;">Offline-first learning resource hub for quality education in alignment with UN SDG 4.</p>
+                    
+                    <p style="margin-bottom: 8px;"><strong>Features:</strong></p>
+                    <ul style="margin-left: 16px; margin-bottom: 12px;">
+                        <li>✓ 12 Subjects with 400+ lessons</li>
+                        <li>✓ Offline access</li>
+                        <li>✓ Progress tracking</li>
+                        <li>✓ MIT App Inventor compatible</li>
+                    </ul>
+
+                    <p style="margin-bottom: 8px; font-size: 11px; color: var(--light);">© 2024 WVSU Connect. All rights reserved.</p>
+                </div>
+            `;
+
+            modal.classList.add('show');
+        }
+
+        // Service Worker Registration
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.js').catch(() => {
+                console.log('SW not available');
+            });
+        }
+
+        // Start App
+        init();
+    </script>
+</body>
+</html>
